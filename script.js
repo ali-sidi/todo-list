@@ -1,11 +1,9 @@
-// Load tasks from localStorage when page loads
 document.addEventListener("DOMContentLoaded", loadTasks);
 
 function loadTasks() {
     const taskList = document.getElementById("taskList");
     const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-    taskList.innerHTML = ""; // Clear current tasks
+    taskList.innerHTML = "";
 
     savedTasks.forEach(task => {
         addTaskToDOM(task.text, task.completed);
@@ -22,7 +20,7 @@ function addTask() {
     }
 
     addTaskToDOM(taskText, false);
-    taskInput.value = ""; // Clear input
+    taskInput.value = "";
     updateLocalStorage();
 }
 
@@ -31,30 +29,34 @@ function addTaskToDOM(taskText, isCompleted) {
     const li = document.createElement("li");
 
     li.innerHTML = `
-        <span class="${isCompleted ? 'completed' : ''}">${taskText}</span>
+        <input type="radio" class="radio-btn" ${isCompleted ? 'checked' : ''}>
+        <span class="task-content ${isCompleted ? 'completed' : ''}">${taskText}</span>
+        <button class="edit-btn" onclick="editTask(this)">Edit</button>
         <button class="delete-btn" onclick="deleteTask(this)">Delete</button>
     `;
 
-    // Toggle completed status on click
-    li.querySelector("span").addEventListener("click", function() {
-        this.classList.toggle("completed");
+    li.querySelector(".radio-btn").addEventListener("click", function() {
+        const taskContent = this.nextElementSibling;
+        taskContent.classList.toggle("completed");
         updateLocalStorage();
-    });
-
-    // Double-click to edit task
-    li.querySelector("span").addEventListener("dblclick", function() {
-        const newText = prompt("Edit task:", this.textContent);
-        if (newText !== null && newText.trim() !== "") {
-            this.textContent = newText.trim();
-            updateLocalStorage();
-        }
     });
 
     taskList.appendChild(li);
 }
 
+function editTask(button) {
+    const li = button.closest("li");
+    const taskContent = li.querySelector(".task-content");
+    const newText = prompt("Edit task:", taskContent.textContent);
+
+    if (newText !== null && newText.trim() !== "") {
+        taskContent.textContent = newText.trim();
+        updateLocalStorage();
+    }
+}
+
 function deleteTask(button) {
-    button.parentElement.remove();
+    button.closest("li").remove();
     updateLocalStorage();
 }
 
@@ -62,8 +64,8 @@ function updateLocalStorage() {
     const tasks = [];
     document.querySelectorAll("#taskList li").forEach(li => {
         tasks.push({
-            text: li.querySelector("span").textContent,
-            completed: li.querySelector("span").classList.contains("completed")
+            text: li.querySelector(".task-content").textContent,
+            completed: li.querySelector(".radio-btn").checked
         });
     });
 
